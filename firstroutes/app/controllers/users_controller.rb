@@ -1,8 +1,16 @@
 class UsersController < ApplicationController
     def index
-        @users = User.all
-    
-        render json: @users 
+        if params[:query]
+            users = User.where("username LIKE '%#{params[:query]}%'")
+            if users
+                render json: users
+            else
+                render plain: "User not found", status: 422
+            end
+        else
+            @users = User.all
+            render json: @users 
+        end
     end
 
     def create
@@ -42,7 +50,7 @@ class UsersController < ApplicationController
     def destroy
         user = User.find_by(id: params[:id])
 
-        if user.delete
+        if user.destroy
             redirect_to users_url
         else
             render json: user.errors.full_messages, status: :unprocessable_entity
@@ -52,6 +60,6 @@ class UsersController < ApplicationController
     private
 
     def user_params
-        params.require(:user).permit(:name, :email)
+        params.require(:user).permit(:username)
     end
 end
